@@ -1,0 +1,316 @@
+/*
+$
+$   AUTHOR:_SUNNY AGGARWAL
+$   J.K CHABBRA SIR WORKSHOP ASSIGNMENT
+$   PROBLEM: ADD TWO NUMBERS
+$   CONSTRAINTS:
+$    ->accept large floating point numbers
+$    ->accept large integers numbers
+$    ->accept scientific notation of the form ( AX10^(B))/( ax10^(-b))
+$    ->( AX10(B))/( ax10(-b)) added
+$    ->( Ae(B))/( aE(-b)) added
+$    NOTE:: there may be some implementation mistake i have tested for a number of test cases ::
+$*/
+#include<bits/stdc++.h>
+#include<iostream>
+#include<string>
+using namespace std;
+#define pb push_back
+#define ft first
+#define sd second
+struct pair_type{
+ int first,second;
+  pair_type(){
+   first=second=0;
+  }
+};
+
+class number{
+
+   string str;
+   string num1,num2,num3;
+   public:
+
+   number operator +(number b){
+    number c;
+    int check1=is_scientific(str);
+    int check2=is_scientific(b.str);
+    if(check1||check2){
+        string str1= check1?convert_scientific(str):str;
+        string str2= check2?convert_scientific(b.str):b.str;
+        c.str=process(str1,str2);
+    }else c.str=process(str,b.str);
+    return c;
+   }
+
+   // FUNCTION PROCESS
+   string process(string &str1,string &str2){
+
+      pair_type dec1,dec2;
+      dec1=find_decimal(str1);
+      dec2=find_decimal(str2);
+      int count;
+      count=abs(dec2.ft-dec1.ft);
+
+      if(dec1.ft>dec2.ft){
+        while(count--) num2.pb('0');
+      }else{
+        while(count--) num1.pb('0');
+      }
+
+      for(int i=0;i<str1.length();i++) if(str1[i]<='9'&&str1[i]>='0')num1.pb(str1[i]);
+
+      for(int i=0;i<str2.length();i++) if(str2[i]<='9'&&str2[i]>='0')num2.pb(str2[i]);
+
+      count=abs(dec1.sd-dec2.sd);
+
+      if(dec1.sd>dec2.sd){
+        while(count--) num2.pb('0');
+      }else{
+        while(count--) num1.pb('0');
+      }
+
+      if(str1[0]=='-'&&str2[0]=='-'){
+        ADD(num1,num2,max(dec1.sd,dec2.sd));
+        insert(num3,0,'-');
+        // my insert call
+      }else if(str1[0]=='-'||str2[0]=='-'){
+        int i;
+        for(i=0;i<num1.length();i++){
+          if(num1[i]<num2[i]) break;
+          else
+            if(num1[i]>num2[i])break;
+        }
+
+        if(i!=num1.length())
+        {
+           if(num1[i]<num2[i]){
+             SUB(num2,num1,max(dec1.sd,dec2.sd));
+             if(str2[0]=='-')insert(num3,0,'-');
+           }else{
+             SUB(num1,num2,max(dec1.sd,dec2.sd));
+             if(str1[0]=='-')insert(num3,0,'-');
+           }
+        }else{
+           num3.pb('0');
+        }
+       }else{
+         ADD(num1,num2,max(dec1.sd,dec2.sd));
+       }
+     return num3;
+   }
+
+   // FUNCTION ADD
+   void ADD(string &str1,string &str2,int decimal){
+     int i=str1.length()-1;
+     int term,carry;
+     carry=0;
+     while(i>=0){
+        term=(str1[i]-'0'+str2[i]-'0'+carry);
+        carry=term/10;
+        term%=10;
+        num3.pb(term+'0');
+        i--;
+     }
+     if(carry>0) num3.pb(carry+'0');
+     if(decimal) insert(num3,decimal,'.');
+     reverse(num3);
+   }
+
+   // FUNCTION SUB
+   void SUB(string &str1,string &str2,int decimal){
+     int i=str1.length()-1;
+     int b1,b2;
+     b1=0;
+     b2=0;
+     while(i>=0){
+         if(((str1[i]-'0')+b1)>=(str2[i]-'0')){
+           num3.pb(((str1[i]-'0')+b1)-(str2[i]-'0')+'0');
+         }else{
+           b2--;
+           num3.pb(((str1[i]-'0')+b1)-(str2[i]-'0')+10+'0');
+         }
+         b1=b2;
+         b2=0;
+         i--;
+     }
+     if(decimal) insert(num3,decimal,'.');
+     reverse(num3);
+   }
+
+    // FUNTION RETURNS NUMBER OF DIGITS BEFORE OR AFTER DECIMAL
+   pair_type find_decimal(string &str){
+      pair_type dec;
+      int temp=find(str,'.'); // my find
+      if(temp!=-1){
+        dec.ft=temp;
+        dec.sd=str.length()-dec.ft-1;
+        if(str[0]=='+'||str[0]=='-')dec.ft--;
+      }else{
+        dec.ft=str.length();
+        dec.sd=0;
+        if(str[0]=='+'||str[0]=='-')dec.ft--;
+       }
+      return dec;
+   }
+
+   bool is_scientific(string &_str){
+    int check3,check4,check1,check2;
+    check1=find(_str,'X');
+    check2=find(_str,'x');
+    check3=find(_str,'e');
+    check4=find(_str,'E');
+     //both possibilities tested
+    return (check1!=-1||check2!=-1||check3!=-1||check4!=-1);
+   }
+
+
+   // THIS FUNCTION CONVERTS SCIENTIFIC NOTATION INTO DECIMAL NOTATION
+   string convert_scientific(string &_str){
+     string temp;
+     int pos,i=_str.length()-1;
+     int decimal_checker=find(_str,'.');
+     decimal_checker= decimal_checker==-1?0:1;
+     while(_str[i]!='X'&&_str[i]!='x'&&_str[i]!='E'&&_str[i]!='e') i--;
+     pos=i-1;
+     if(_str[i]=='E'||_str[i]=='e') i++; // here is the mistake i changed the logic but forgot to change it right here
+     else i+=3;
+     // dependent condition *(NOT SO GOOD) Assume only base 10 at this time
+     if(_str[i]=='^')
+     i++;
+     bool flag=0;
+     if(i<_str.length()&&(_str[i]=='-'||_str[i]=='+')){ if(_str[i]=='-')flag=1;i++;}
+     long long move=0;
+     bool F=0;
+     while(i<_str.length()){
+        move=move*10+(_str[i]-'0');
+        i++;
+        F=1;
+     }
+     if(!F) move = 1LL;
+    // move=max(move,1LL); // this allows (axb^10)
+     if(flag){
+       i=pos;
+       if(!move){
+         while(i>=0){
+          temp.pb(_str[i]);
+          i--;
+         }
+
+       }else{
+
+         while(i>=0){
+          if(_str[i]<='9'&&_str[i]>='0')temp.pb(_str[i]);
+          if(!decimal_checker) move--;
+          if(move==0) temp.pb('.');
+          if(_str[i]=='.'){decimal_checker=0;}
+          i--;
+         }
+         if(move>0)
+         {
+          while(move>0){
+           move--;
+           temp.pb('0');
+          }
+          if(move==0) temp.pb('.');
+         }
+         if(_str[0]=='-')temp.pb('-');
+       }
+       reverse(temp);
+      //cout << temp << endl;
+    }else{
+
+       if(!move){
+         i=0;
+         while(i<=pos){
+           temp.pb(_str[i]);
+           i++;
+         }
+       }else{
+        decimal_checker=0;
+        i=0;
+        while(i<=pos){
+          if(_str[i]<='9'&&_str[i]>='0')temp.pb(_str[i]);
+          if(decimal_checker)move--;
+          if(move==0)temp.pb('.');
+          if(_str[i]=='.'){decimal_checker=1;}
+          i++;
+        }
+        while(move>0){
+           move--;
+           temp.pb('0');
+        }
+        if(_str[0]=='-'){
+          insert(temp,0,'-');
+        }
+     }
+    }
+    return temp;
+   }
+   // reverse function
+   void reverse(string &temp){
+    int low=0;
+    int high=temp.length()-1;
+    while(low<high){
+     swap(temp[low],temp[high]);
+     high--;
+     low++;
+    }
+   }
+
+   // insert decimal/negative at the location dec
+   void insert(string &temp,int dec,char symbol){
+    string temp1;
+    int i;
+    for(i=0;i<dec;i++){
+     temp1.pb(temp[i]);
+    }
+    temp1.pb(symbol);
+    for(;i<temp.length();i++){
+     temp1.pb(temp[i]);
+    }
+    temp.clear();
+    for(i=0;i<temp1.length();i++)
+    {
+        temp.pb(temp1[i]);
+    }
+   }
+
+   // my find function
+   int find(string &temp,char ch){
+    int len=temp.length();
+    for(int i=0;i<len;i++){
+     if(temp[i]==ch) return i;
+    }
+    return -1;
+   }
+
+  // friend functions declaration
+  friend istream & operator >> (istream &stream,number &ob);
+  friend ostream & operator << (ostream &stream,number &ob);
+};
+
+// friend function definition
+ostream & operator << (ostream &stream,number &ob){
+ stream<<ob.str;
+}
+
+istream & operator >> (istream &stream,number &ob){
+ stream>>ob.str;
+}
+
+
+int main(){
+
+ int t;
+ cout<<"\t\tENTER NUMBER OF TESTS TO PERFORM\n"<<endl;
+ cin>>t;
+ while(t--){
+   number A,B,C;
+   cout<<"\tENTER TWO NUMBERS A & B\n"<<endl;
+   cin>>A>>B;
+   C=A+B;
+   cout<<A<<" + "<<B<<" = "<<C<<endl;
+ }
+ return 0;
+}
